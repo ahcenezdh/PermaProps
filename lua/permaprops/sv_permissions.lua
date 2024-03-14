@@ -1,4 +1,8 @@
-/*
+﻿local PermaProps = PermaProps
+local hook_Add = hook.Add
+local IsValid = IsValid
+
+--[[
    ____          _          _   ____          __  __       _ _                     
   / ___|___   __| | ___  __| | | __ ) _   _  |  \/  | __ _| | |__   ___  _ __ ___  
  | |   / _ \ / _` |/ _ \/ _` | |  _ \| | | | | |\/| |/ _` | | '_ \ / _ \| '__/ _ \ 
@@ -6,68 +10,35 @@
   \____\___/ \__,_|\___|\__,_| |____/ \__, | |_|  |_|\__,_|_|_.__/ \___/|_|  \___/ 
                                       |___/                                        
 						Thanks to ARitz Cracker for this part
-*/
-
-function PermaProps.HasPermission( ply, name )
-
-	if !PermaProps or !PermaProps.Permissions or !PermaProps.Permissions[ply:GetUserGroup()] then return false end
-
-	if PermaProps.Permissions[ply:GetUserGroup()].Custom == false and PermaProps.Permissions[ply:GetUserGroup()].Inherits and PermaProps.Permissions[PermaProps.Permissions[ply:GetUserGroup()].Inherits] then
-
-		return PermaProps.Permissions[PermaProps.Permissions[ply:GetUserGroup()].Inherits][name]
-
-	end
-
-	return PermaProps.Permissions[ply:GetUserGroup()][name]
-
+]]
+function PermaProps.HasPermission(ply, name)
+    if not PermaProps or not PermaProps.Permissions or not PermaProps.Permissions[ply:GetUserGroup()] then return false end
+    if PermaProps.Permissions[ply:GetUserGroup()].Custom == false and PermaProps.Permissions[ply:GetUserGroup()].Inherits and PermaProps.Permissions[PermaProps.Permissions[ply:GetUserGroup()].Inherits] then return PermaProps.Permissions[PermaProps.Permissions[ply:GetUserGroup()].Inherits][name] end
+    return PermaProps.Permissions[ply:GetUserGroup()][name]
 end
 
-local function PermaPropsPhys( ply, ent, phys )
-
-	if ent.PermaProps then
-
-		return PermaProps.HasPermission( ply, "Physgun")
-
-	end
-	
+local function PermaPropsPhys(ply, ent, phys)
+    if ent.PermaProps then return PermaProps.HasPermission(ply, "Physgun") end
 end
-hook.Add("PhysgunPickup", "PermaPropsPhys", PermaPropsPhys)
-hook.Add( "CanPlayerUnfreeze", "PermaPropsUnfreeze", PermaPropsPhys) -- Prevents people from pressing RELOAD on the physgun
 
-local function PermaPropsTool( ply, tr, tool )
+hook_Add("PhysgunPickup", "PermaPropsPhys", PermaPropsPhys)
+hook_Add("CanPlayerUnfreeze", "PermaPropsUnfreeze", PermaPropsPhys) -- Prevents people from pressing RELOAD on the physgun
+local function PermaPropsTool(ply, tr, tool)
+    if IsValid(tr.Entity) then
+        if tr.Entity.PermaProps then
+            if tool == "permaprops" then return true end
+            return PermaProps.HasPermission(ply, "Tool")
+        end
 
-	if IsValid(tr.Entity) then
-
-		if tr.Entity.PermaProps then
-
-			if tool == "permaprops" then
-
-				return true
-
-			end
-
-			return PermaProps.HasPermission( ply, "Tool")
-
-		end
-
-		if tr.Entity:GetClass() == "sammyservers_textscreen" and tool == "permaprops" then -- Let people use PermaProps on textscreen
-			
-			return true
-
-		end
-
-	end
-
+        if tr.Entity:GetClass() == "sammyservers_textscreen" and tool == "permaprops" then -- Let people use PermaProps on textscreen
+            return true
+        end
+    end
 end
-hook.Add( "CanTool", "PermaPropsTool", PermaPropsTool)
 
-local function PermaPropsProperty( ply, property, ent )
-
-	if IsValid(ent) and ent.PermaProps and tool ~= "permaprops" then
-
-		return PermaProps.HasPermission( ply, "Property")
-
-	end
-
+hook_Add("CanTool", "PermaPropsTool", PermaPropsTool)
+local function PermaPropsProperty(ply, property, ent)
+    if IsValid(ent) and ent.PermaProps and tool ~= "permaprops" then return PermaProps.HasPermission(ply, "Property") end
 end
-hook.Add( "CanProperty", "PermaPropsProperty", PermaPropsProperty)
+
+hook_Add("CanProperty", "PermaPropsProperty", PermaPropsProperty)
